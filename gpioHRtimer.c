@@ -20,7 +20,7 @@ static struct hrtimer dv_hr_timer;
 
 static int gpioN = 0;
 static long ival = TIMEOUT_NSEC;
-static bool dv_state;
+static u32 dv_state;
 
 module_param(gpioN, int, S_IRUSR | S_IWUSR);
 MODULE_PARM_DESC(gpioN, "GPIO pin number");
@@ -28,9 +28,10 @@ module_param(ival, long, S_IRUSR | S_IWUSR);
 MODULE_PARM_DESC(ival, "HR Timer interval");
 
 enum hrtimer_restart timer_callback(struct hrtimer *timer) {
- dv_state = !dv_state;
- gpio_set_value( gpioN, dv_state);
+ dv_state++;
+ gpio_set_value( gpioN, dv_state % 2);
  hrtimer_forward_now( &dv_hr_timer, ktime_set( 0, ival));
+ if ( dv_state % 10000 == 0) printk( KERN_INFO "%s() 10000 switches are done\n", __FUNCTION__);
  return( HRTIMER_RESTART);  }
 
 static int __init my_init(void) {
